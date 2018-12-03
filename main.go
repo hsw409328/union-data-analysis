@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/hsw409328/gofunc"
 	"github.com/hsw409328/gofunc/go_hlog"
+	"time"
 	"union-data-analysis/model"
 )
 
@@ -23,11 +24,18 @@ type Achievement struct {
 
 func main() {
 	lg.Info(" system start ")
-	add()
-	reduce()
+	lastDate := gofunc.TimeUnixIntToStringCustom(gofunc.LastTime("d", -1), "2006-01-02")
+	lastStartTime := lastDate + " 00:00:00"
+	lastEndTime := lastDate + " 23:59:59"
+	//统计每天增加的金额
+	add(lastDate, lastStartTime, lastEndTime)
+	//统计每天减少的金额
+	reduce(lastDate, lastStartTime, lastEndTime)
+	//更新发放记录数据
+	updateSendRecord(lastDate)
 }
 
-func add() {
+func add(lastDate string, lastStartTime string, lastEndTime string) {
 
 	//取出用户关系以 【下级ID】 hash形式存放
 	relationModel := model.NewRelation()
@@ -35,6 +43,7 @@ func add() {
 
 	// 计算每天的所有订单业绩
 	orderDataSlice := model.NewOrder().Where(map[string]string{
+		//"cgtime": " between '" + lastStartTime + "' and '" + lastEndTime + "' ",
 		"cgtime": " between '2018-11-01 00:00:00' and '2018-12-01 23:59:59' ",
 		"订单状态":   " = '订单结算'",
 	}).Group("ID").GetAll()
@@ -79,12 +88,11 @@ func add() {
 					ratio = webUserVal.Ratio
 					//获取的奖励
 					result := v.Money * useRatio
-					lg.Asset(result)
 					dayRecordModel.Insert(model.WebDayRecordData{
 						webUserVal.Mobile,
 						gofunc.CurrentTime(),
 						gofunc.CurrentTime(),
-						gofunc.CurrentDate(),
+						lastDate,
 						result,
 					})
 				}
@@ -93,7 +101,7 @@ func add() {
 	}
 }
 
-func reduce() {
+func reduce(lastDate string, lastStartTime string, lastEndTime string) {
 
 	//取出用户关系以 【下级ID】 hash形式存放
 	relationModel := model.NewRelation()
@@ -101,6 +109,7 @@ func reduce() {
 
 	// 计算每天的所有订单业绩
 	orderDataSlice := model.NewOrder().Where(map[string]string{
+		//"cgtime": " between '" + lastStartTime + "' and '" + lastEndTime + "' ",
 		"cgtime": " between '2018-11-01 00:00:00' and '2018-12-01 23:59:59' ",
 		"订单状态":   " = '失效订单'",
 	}).Group("ID").GetAll()
@@ -145,15 +154,56 @@ func reduce() {
 					ratio = webUserVal.Ratio
 					//获取的奖励
 					result := v.Money * useRatio
-					lg.Asset(result)
 					dayRecordModel.Insert(model.WebDayRecordData{
 						webUserVal.Mobile,
 						gofunc.CurrentTime(),
 						gofunc.CurrentTime(),
-						gofunc.CurrentDate(),
+						lastDate,
 						-result,
 					})
 				}
+			}
+		}
+	}
+}
+
+func updateSendRecord(lastDate string) {
+	//获取昨天汇总之后所有的记录表
+	webDayRecordModel := new(model.WebDayRecord)
+	r := webDayRecordModel.Where(map[string]string{
+		"奖励日期": " = '" + lastDate + "'",
+	}).GetAllSum()
+	for _, v := range r {
+		//获取未结算的单子
+		webSendRecordModel := new(model.WebSendRecord)
+		tmp, _ := webSendRecordModel.Where(map[string]string{
+			"发放状态": " ='未结算'",
+			"手机号":  "= '" + v.Mobile + "' ",
+		}).GetMobileLastRecord()
+		if tmp.RowId == 0 {
+			//执行插入操作
+			_, err := webSendRecordModel.Insert(model.WebSendRecordData{
+				0,
+				gofunc.CurrentTime(),
+				gofunc.CurrentTime(),
+				v.RewardMoney,
+				time.Now().Format("01"),
+				"未结算",
+				"",
+				v.Mobile,
+			})
+			if err != nil {
+				lg.Error(err.Error())
+				continue
+			}
+		} else {
+			//执行更新操作
+			tmp.RewardMoney += v.RewardMoney
+			tmp.UpdateTime = gofunc.CurrentTime()
+			_, err := webSendRecordModel.UpdateRewardMoney(tmp)
+			if err != nil {
+				lg.Error(err.Error())
+				continue
 			}
 		}
 	}

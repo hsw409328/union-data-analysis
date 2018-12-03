@@ -34,9 +34,48 @@ func (ctx *WebDayRecord) Group(group string) *WebDayRecord {
 	return ctx
 }
 
+func (ctx *WebDayRecord) GetAll() []WebDayRecordData {
+	r, err := driver.SQLiteDriverWeb.GetAll("select  奖励金额,手机号,奖励日期 from " + WebDayRecordTableName +
+		ctx.where + ctx.group)
+	if err != nil {
+		lg.Error(err.Error())
+	}
+	defer r.Close()
+	var webDayRecordData = new(WebDayRecordData)
+	var webDayRecordDataSlice = make([]WebDayRecordData, 0)
+	for r.Next() {
+		err := r.Scan(&webDayRecordData.RewardMoney, &webDayRecordData.Mobile, &webDayRecordData.RewardDate)
+		if err != nil {
+			lg.Error(err.Error())
+		}
+		webDayRecordDataSlice = append(webDayRecordDataSlice, *webDayRecordData)
+	}
+	return webDayRecordDataSlice
+}
+
+func (ctx *WebDayRecord) GetAllSum() []WebDayRecordData {
+	r, err := driver.SQLiteDriverWeb.GetAll("select  SUM(奖励金额),手机号,奖励日期 from " + WebDayRecordTableName +
+		ctx.where + ctx.group)
+	if err != nil {
+		lg.Error(err.Error())
+	}
+	defer r.Close()
+	var webDayRecordData = new(WebDayRecordData)
+	var webDayRecordDataSlice = make([]WebDayRecordData, 0)
+	for r.Next() {
+		err := r.Scan(&webDayRecordData.RewardMoney, &webDayRecordData.Mobile, &webDayRecordData.RewardDate)
+		if err != nil {
+			lg.Error(err.Error())
+		}
+		webDayRecordDataSlice = append(webDayRecordDataSlice, *webDayRecordData)
+	}
+	return webDayRecordDataSlice
+}
+
 func (ctx *WebDayRecord) Insert(webDayRecordData WebDayRecordData) (int64, error) {
 	n, err := driver.SQLiteDriverWeb.Insert(
-		"insert into [每日记录表]([创建时间], [更新时间], [奖励金额], [手机号], [奖励日期]) values(?, ?, ?, ?, ?)",
+		"insert into ["+WebDayRecordTableName+"]([创建时间], [更新时间], [奖励金额], [手机号], [奖励日期])"+
+			" values(?, ?, ?, ?, ?)",
 		webDayRecordData.CreateTime, webDayRecordData.UpdateTime, webDayRecordData.RewardMoney,
 		webDayRecordData.Mobile, webDayRecordData.RewardDate,
 	)

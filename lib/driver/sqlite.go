@@ -82,3 +82,26 @@ func (ctx *SQLite) Insert(sqlStmt string, v ...interface{}) (int64, error) {
 	}
 	return lastID, err
 }
+
+func (ctx *SQLite) Update(sqlStmt string, v ...interface{}) (int64, error) {
+	ctx.Init()
+	if sqlLog {
+		lg.Debug(sqlStmt)
+	}
+	stmt, err := ctx.DB.Prepare(sqlStmt)
+	if err != nil {
+		lg.Error(err)
+		return 0, err
+	}
+	result, err := stmt.Exec(v...)
+	if err != nil {
+		lg.Error(err.Error())
+		return 0, err
+	}
+	affectNum, err := result.RowsAffected()
+	if err != nil {
+		lg.Error(err)
+		return 0, err
+	}
+	return affectNum, err
+}
