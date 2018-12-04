@@ -3,7 +3,6 @@ package model
 import "union-data-analysis/lib/driver"
 
 type WebUserData struct {
-	Id               int
 	Mobile           string
 	State            string
 	BankUserAccount  string
@@ -64,14 +63,23 @@ func (ctx *WebUsers) GetAll() []WebUserData {
 }
 
 func (ctx *WebUsers) GetOne() (WebUserData, error) {
-	r := driver.SQLiteDriverWeb.GetOne("select 用户ID, 用户名, 上级用户ID,等级,比例,手机号 from " + WebUserTableName +
+	r := driver.SQLiteDriverWeb.GetOne("select 用户ID, 用户名, 上级用户ID,等级,比例,手机号,状态 from " + WebUserTableName +
 		ctx.where + ctx.group)
 	var webUsersData = new(WebUserData)
 	err := r.Scan(&webUsersData.UnionId, &webUsersData.UnionName, &webUsersData.UnionParentId, &webUsersData.Level,
-		&webUsersData.Ratio, &webUsersData.Mobile)
+		&webUsersData.Ratio, &webUsersData.Mobile, &webUsersData.State)
 	if err != nil {
 		lg.Error(err.Error())
 		return *webUsersData, err
 	}
 	return *webUsersData, nil
+}
+
+func (ctx *WebUsers) Insert(w WebUserData) (int64, error) {
+	n, err := driver.SQLiteDriverWeb.Insert(
+		"insert into ["+WebUserTableName+"]([手机号], [状态],[创建时间],[更新时间])"+
+			" values(?, ?, ?, ?)",
+		w.Mobile, w.State, w.CreateTime, w.UpdateTime,
+	)
+	return n, err
 }

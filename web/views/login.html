@@ -1,0 +1,114 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>登录</title>
+    <meta name="author" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" type="text/css" href="../css/style.css"/>
+</head>
+
+<body>
+<div class="body_align">
+    <!--头部-->
+    <div class="use_login_top">
+        <img src="../images/logo.jpg"/>
+    </div>
+    <!--身体-->
+    <div class="use_login_body">
+        <div class="use_login_g">
+            <img src="../images/icon_1.png"/><input type="number" maxlength="11" id='iphone_yz'
+                                                    placeholder="请输入您的手机号码"/>
+        </div>
+        <div class="use_login_border">
+            <div class="use_login_l u_wdx">
+                <input placeholder="请输入短信验证码" type="number" maxlength="6" class="icon_3" id="sms_yz"/>
+            </div>
+            <!--点击之后添加use_login_dis-->
+            <input type="button" id="use_login_dis" onclick="send(this)" value="发送验证码" disabled="disabled">
+        </div>
+    </div>
+    <!--提交-->
+    <div class="submit_order1">
+        <a href="javascript:login()" id="login">登录</a>
+    </div>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <!--验证手机-->
+    <script type="text/javascript">
+        //验证手机事件
+        $("#iphone_yz").bind("input propertychange", function (event) {
+            if ($(this).val().length > 0) {
+                $("#use_login_dis").addClass("use_login_dis");
+                $("#use_login_dis").removeAttr("disabled");
+
+            } else {
+                $("#use_login_dis").removeClass("use_login_dis")
+            }
+        });
+
+        $("#sms_yz").bind("input propertychange", function (event) {
+            if ($(this).val().length > 0) {
+                $("#login").addClass("background_n")
+            } else {
+                $("#login").removeClass("background_n")
+            }
+        });
+        //发送验证码
+        var countdown = 60;
+        var send = function (obj) {
+            $.ajax({
+                type: "POST",
+                url: "/api/send/message",
+                data: {mobile: $('#iphone_yz').val()},
+                success: function (msg) {
+                    settime(obj);
+                },
+                async: false,
+                error: function (XmlHttpRequest, textStatus, errorThrown) {
+                    alert(XmlHttpRequest.responseText);
+                }
+            });
+        };
+        var login = function () {
+            $.ajax({
+                type: "POST",
+                url: "/api/login",
+                data: {
+                    mobile: $('#iphone_yz').val(),
+                    authCode: $('#sms_yz').val(),
+                },
+                success: function (msg) {
+                    window.location.href = "/"
+                },
+                async: false,
+                error: function (XmlHttpRequest, textStatus, errorThrown) {
+                    alert(XmlHttpRequest.responseText);
+                }
+            });
+        };
+
+        function settime(obj) {
+            if (countdown == 0) {
+                $("#use_login_dis").addClass("use_login_dis");
+                obj.value = "发送验证码";
+                countdown = 60;
+                return;
+            } else {
+                obj.setAttribute("disabled", true);
+                $("#use_login_dis").removeClass("use_login_dis");
+                obj.value = "重新发送(" + countdown + ")";
+                countdown--;
+            }
+            setTimeout(function () {
+                settime(obj)
+            }, 1000)
+        }
+    </script>
+</div>
+</body>
+
+</html>
