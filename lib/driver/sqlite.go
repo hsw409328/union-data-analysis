@@ -105,3 +105,23 @@ func (ctx *SQLite) Update(sqlStmt string, v ...interface{}) (int64, error) {
 	}
 	return affectNum, err
 }
+
+func (ctx *SQLite) Delete(sqlStmt string, v ...interface{}) int64 {
+	ctx.Init()
+	if sqlLog {
+		lg.Debug(sqlStmt)
+	}
+	stmt, err := ctx.DB.Prepare(sqlStmt)
+	if err != nil {
+		lg.Error(err)
+	}
+	result, err := stmt.Exec(v...)
+	if err != nil {
+		lg.Error(err)
+	}
+	affectNum, err := result.RowsAffected()
+	if err != nil {
+		lg.Error(err)
+	}
+	return affectNum
+}

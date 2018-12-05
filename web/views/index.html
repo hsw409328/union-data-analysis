@@ -14,11 +14,12 @@
 
 	<body>
 		<div class="use_my_t">
-			<label>李孟瑶</label>
-			<p><img src="../images/icon_2.png"><img src="../images/icon_2.png"><img src="../images/icon_2.png"><img src="../images/icon_2.png"><img src="../images/icon_2.png"></p>
+			<label id="nickname"></label>
+			<p id="xingxing">
+			</p>
 		</div>
 		<div class="use_my_nav">
-			<p class="overflow"><a href="login.html"><span>用户量</span><strong>85022</strong></a><a href="data.html" class='noborder'><span>订单量</span><strong>85022</strong></a></p>
+			<p class="overflow"><a href="/"><span>用户量</span><strong id="usernumber">85022</strong></a><a href="/" class='noborder'><span>订单量</span><strong id="ordernumber">85022</strong></a></p>
 		</div>
 		<div class="information">
 			<h2>
@@ -27,9 +28,9 @@
 				<a href="#" class="update">修改</a>
 			</h2>
 			<ul class="inf_me">
-				<li><label>开户名：</label><span>张娜</span></li>
-				<li><label>账号：</label><span>121212121212121</span></li>
-				<li><label>开户行：</label><span>中国工商银行</span></li>
+				<li><label>开户名：</label><span id="bankUserName"></span></li>
+				<li><label>账号：</label><span id="bankAccount"></span></li>
+				<li><label>开户行：</label><span id="bankName"></span></li>
 			</ul>
 		</div>
 		<div class="information">
@@ -37,42 +38,22 @@
 				<img src="../images/icon_5.png">
 				<span >奖励发放记录</span>
 			</h2>
-			<table border="0" cellspacing="0" cellpadding="0" class="record_k">
-				<tr>
-					<th width="20%">月份</th>
-					<th width="40%">奖励金额</th>
-					<th width="40%">发放时间</th>
-				</tr>
-				<tr>
-					<td>10月</td>
-					<td>1111111111</td>
-					<td>11月15日</td>
-				</tr>
-				<tr>
-					<td>09月</td>
-					<td>1</td>
-					<td>11月15日</td>
-				</tr>
-				<tr>
-					<td>08月</td>
-					<td>121212元</td>
-					<td>11月15日</td>
-				</tr>
+			<table border="0" cellspacing="0" cellpadding="0" class="record_k" id="recordTable">
 			</table>
 		</div>
 		<!--修改信息-->
 		<div class="use_order_number overflow">
 			<div class="use_login_x ">
-				<input placeholder="开户名" type="text" />
+				<input placeholder="开户名" type="text" id="ba"/>
 			</div>
 			<div class="use_login_x ">
-				<input placeholder="账号" type="text" />
+				<input placeholder="账号" type="text" id="bu"/>
 			</div>
 			<div class="use_login_x ">
-				<textarea placeholder="开户行"></textarea>
+				<textarea placeholder="开户行" id="bn"></textarea>
 			</div>
 			<div class="use_order_sub overflow">
-				<button class="determine">确定</button><button class="cancel">取消</button>
+				<button class="determine" id="submityayay">确定</button><button class="cancel">取消</button>
 			</div>
 		</div>
 		<div class="box"></div>
@@ -92,6 +73,60 @@
 					$(".box").hide();
 					$(".use_order_number").hide();
 				})
+
+                $('#submityayay').click(function () {
+                   $.post("/api/update/user",{
+                       ba:$("#ba").val(),
+                       bu:$("#bu").val(),
+                       bn:$("#bn").val(),
+                   },function (r) {
+                      if(r.data=="更新成功"){
+                          alert(r.data);
+                          window.location.reload();
+                      }else{
+                          alert(r.data);
+                      }
+                   });
+                });
+
+                $.get("/api/get/all",function (r) {
+                    var htmlStr = "\n" +
+                        "\t\t\t\t<tr>\n" +
+                        "\t\t\t\t\t<th width=\"20%\">月份</th>\n" +
+                        "\t\t\t\t\t<th width=\"40%\">奖励金额</th>\n" +
+                        "\t\t\t\t\t<th width=\"40%\">发放时间</th>\n" +
+                        "\t\t\t\t</tr>\n";
+                    if(r.data==""){
+                        $('#recordTable').html(htmlStr);
+                    }else{
+                        for(var index in r.data){
+                            htmlStr +="<tr>\n" +
+                                "\t\t\t\t\t<td>"+r.data[index].RewardMonth+"</td>\n" +
+                                "\t\t\t\t\t<td>"+r.data[index].RewardMoney.toFixed(2)+"</td>\n" +
+                                "\t\t\t\t\t<td>"+r.data[index].RewardSendTime+"</td>\n" +
+                                "\t\t\t\t</tr>";
+						}
+                        $('#recordTable').html(htmlStr);
+                    }
+                });
+				$.get("/api/get/user",function (r) {
+					if(r.data==""){
+					    alert("未找到用户信息");
+					}else{
+                        $('#bankUserName').html(r.data.BankUserName);
+                        $('#bankAccount').html(r.data.BankUserAccount);
+                        $('#bankName').html(r.data.BankName);
+                        $('#nickname').html(r.data.UserNickName);
+                        var level = parseInt(r.data.Level);
+                        var xx = "";
+                        for(i=1;i<=7;i++){
+                            xx += "<img src=\"../images/icon_2.png\">";
+						}
+                        $('#xingxing').html(xx);
+                        $('#usernumber').html(r.data.ChildUserNumber);
+                        $('#ordernumber').html(r.data.ChildOrderNumber);
+					}
+                });
 			})
 		</script>
 	</body>

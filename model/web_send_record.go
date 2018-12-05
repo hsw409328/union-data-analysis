@@ -11,6 +11,7 @@ type WebSendRecordData struct {
 	RewardState    string `未结算，待结算，已结算`
 	RewardSendTime string
 	Mobile         string
+	RewardYear     string
 }
 
 type WebSendRecord struct {
@@ -39,11 +40,11 @@ func (ctx *WebSendRecord) Group(group string) *WebSendRecord {
 
 func (ctx *WebSendRecord) Insert(webSendRecordData WebSendRecordData) (int64, error) {
 	n, err := driver.SQLiteDriverWeb.Insert(
-		"insert into ["+WebSendRecordTableName+"]([创建时间], [更新时间],[奖励金额],[月份],[发放状态],[发放时间],[手机号])"+
-			" values(?, ?, ?, ?, ?, ?, ?)",
+		"insert into ["+WebSendRecordTableName+"]([创建时间], [更新时间],[奖励金额],[月份],[发放状态],[发放时间],[手机号],[年份])"+
+			" values(?, ?, ?, ?, ?, ?, ?, ?)",
 		webSendRecordData.CreateTime, webSendRecordData.UpdateTime, webSendRecordData.RewardMoney,
 		webSendRecordData.RewardMonth, webSendRecordData.RewardState, webSendRecordData.RewardSendTime,
-		webSendRecordData.Mobile,
+		webSendRecordData.Mobile, webSendRecordData.RewardYear,
 	)
 	return n, err
 }
@@ -55,10 +56,11 @@ func (ctx *WebSendRecord) UpdateRewardMoney(webSendRecordData WebSendRecordData)
 	return n, err
 }
 
-func (ctx *WebSendRecord) UpdateRewarSendTimeAndState(id, webSendRecordData WebSendRecordData) (int64, error) {
+func (ctx *WebSendRecord) UpdateRewarSendTimeAndState(webSendRecordData WebSendRecordData) (int64, error) {
 	n, err := driver.SQLiteDriverWeb.Update("UPDATE "+WebSendRecordTableName+" SET 更新时间 = ?,"+
 		"发放状态 = ?,发放时间 = ? WHERE rowid = ?",
-		webSendRecordData.UpdateTime, webSendRecordData.RewardState, webSendRecordData.RewardSendTime)
+		webSendRecordData.UpdateTime, webSendRecordData.RewardState, webSendRecordData.RewardSendTime,
+		webSendRecordData.RowId)
 	return n, err
 }
 
@@ -69,10 +71,44 @@ func (ctx *WebSendRecord) GetMobileLastRecord() (WebSendRecordData, error) {
 	var webSendRecordData = new(WebSendRecordData)
 	err := r.Scan(&webSendRecordData.RowId, &webSendRecordData.CreateTime, &webSendRecordData.UpdateTime,
 		&webSendRecordData.RewardMoney, &webSendRecordData.RewardMonth, &webSendRecordData.RewardState,
-		&webSendRecordData.RewardSendTime, &webSendRecordData.Mobile)
+		&webSendRecordData.RewardSendTime, &webSendRecordData.Mobile, &webSendRecordData.RewardYear)
 	if err != nil {
 		lg.Error(err.Error())
 		return *webSendRecordData, err
 	}
 	return *webSendRecordData, nil
+}
+
+func (ctx *WebSendRecord) GetAll() []WebSendRecordData {
+	r, err := driver.SQLiteDriverWeb.GetAll("select  rowid,* from " + WebSendRecordTableName +
+		ctx.where + " order by 创建时间 desc " + ctx.group)
+	if err != nil {
+		lg.Error(err.Error())
+	}
+	defer r.Close()
+	var webSendRecordData = new(WebSendRecordData)
+	var webSendRecordDataSlice = make([]WebSendRecordData, 0)
+	for r.Next() {
+		err := r.Scan(&webSendRecordData.RowId, &webSendRecordData.CreateTime, &webSendRecordData.UpdateTime,
+			&webSendRecordData.RewardMoney, &webSendRecordData.RewardMonth, &webSendRecordData.RewardState,
+			&webSendRecordData.RewardSendTime, &webSendRecordData.Mobile, &webSendRecordData.RewardYear)
+		if err != nil {
+			lg.Error(err.Error())
+		}
+		webSendRecordDataSlice = append(webSendRecordDataSlice, *webSendRecordData)
+	}
+	return webSendRecordDataSlice
+}
+
+func (ctx *WebSendRecord) GetOne() WebSendRecordData {
+	r := driver.SQLiteDriverWeb.GetOne("select  rowid,* from " + WebSendRecordTableName +
+		ctx.where + " order by 创建时间 desc " + ctx.group)
+	var webSendRecordData = new(WebSendRecordData)
+	err := r.Scan(&webSendRecordData.RowId, &webSendRecordData.CreateTime, &webSendRecordData.UpdateTime,
+		&webSendRecordData.RewardMoney, &webSendRecordData.RewardMonth, &webSendRecordData.RewardState,
+		&webSendRecordData.RewardSendTime, &webSendRecordData.Mobile, &webSendRecordData.RewardYear)
+	if err != nil {
+		lg.Error(err.Error())
+	}
+	return *webSendRecordData
 }

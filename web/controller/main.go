@@ -4,14 +4,20 @@ import (
 	"encoding/json"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"gofunc"
+	"github.com/hsw409328/gofunc"
+	"html/template"
+	"log"
 	"net/http"
+	"strings"
+	"time"
 	"union-data-analysis/enums"
 	"union-data-analysis/model"
 )
 
 var (
-	webUserModel = new(model.WebUsers)
+	webUserModel      = new(model.WebUsers)
+	webSendRecord     = new(model.WebSendRecord)
+	webRecommendModel = new(model.WebFirstRecommend)
 )
 
 type MainController struct {
@@ -93,4 +99,108 @@ func (ctx *MainController) Login(c *gin.Context) {
 		c.JSON(http.StatusOK, enums.UserStateYes)
 		return
 	}
+}
+
+func (ctx *MainController) GetLoginUserInfo(c *gin.Context) model.WebUserData {
+	s := sessions.Default(c)
+	u := s.Get("loginUser")
+	var tmpUser model.WebUserData
+	err := json.Unmarshal([]byte(gofunc.InterfaceToString(u)), &tmpUser)
+	if err != nil {
+		log.Println(err)
+	}
+	w, err := webUserModel.Where(map[string]string{
+		"手机号": " ='" + tmpUser.Mobile + "' ",
+	}).GetOneAllField()
+	if err != nil {
+		log.Println(err)
+	}
+	return w
+}
+
+func (ctx *MainController) GetUserInfo(c *gin.Context) {
+	u := ctx.GetLoginUserInfo(c)
+	if u.Mobile == "" {
+		c.JSON(http.StatusOK, gin.H{"data": ""})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": u})
+	return
+}
+
+func (ctx *MainController) GetAllMoney(c *gin.Context) {
+	u := ctx.GetLoginUserInfo(c)
+	r := webSendRecord.Where(map[string]string{
+		"手机号": " = '" + u.Mobile + "'",
+	}).GetAll()
+	if len(r) <= 0 {
+		c.JSON(http.StatusOK, gin.H{"data": ""})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": r})
+	return
+}
+
+func (ctx *MainController) UpdateUserInfo(c *gin.Context) {
+	bankAccount := template.HTMLEscapeString(c.PostForm("ba"))
+	bankUser := template.HTMLEscapeString(c.PostForm("bu"))
+	bankName := template.HTMLEscapeString(c.PostForm("bn"))
+	u := ctx.GetLoginUserInfo(c)
+	_, err := webUserModel.Update(model.WebUserData{
+		BankName:        bankName,
+		BankUserName:    bankUser,
+		BankUserAccount: bankAccount,
+		Mobile:          u.Mobile,
+	})
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusOK, gin.H{"data": "更新失败"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": "更新成功"})
+	return
+}
+
+func (ctx *MainController) GetLastMoney(c *gin.Context) {
+	u := ctx.GetLoginUserInfo(c)
+	a := gofunc.TimeUnixIntToStringCustom(gofunc.LastTime("m", -1), "2006-01")
+	aSlice := strings.Split(a, "-")
+	r := webSendRecord.Where(map[string]string{
+		"手机号": " = '" + u.Mobile + "'",
+		"年份":  " = '" + aSlice[0] + "'",
+		"月份":  " = '" + aSlice[1] + "'",
+	}).GetOne()
+	if r.Mobile == "" {
+		c.JSON(http.StatusOK, gin.H{"data": ""})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": r})
+}
+
+func (ctx *MainController) GetCurrentMoney(c *gin.Context) {
+	u := ctx.GetLoginUserInfo(c)
+	a := time.Now().Format("2006-01")
+	aSlice := strings.Split(a, "-")
+	r := webSendRecord.Where(map[string]string{
+		"手机号": " = '" + u.Mobile + "'",
+		"年份":  " = '" + aSlice[0] + "'",
+		"月份":  " = '" + aSlice[1] + "'",
+	}).GetOne()
+	if r.Mobile == "" {
+		c.JSON(http.StatusOK, gin.H{"data": ""})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": r})
+}
+
+func (ctx *MainController) GetRecommend(c *gin.Context) {
+	u := ctx.GetLoginUserInfo(c)
+	r := webRecommendModel.Where(map[string]string{
+		"手机号": " = '" + u.Mobile + "'",
+	}).GetAll()
+	if len(r) <= 0 {
+		c.JSON(http.StatusOK, gin.H{"data": ""})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": r})
 }

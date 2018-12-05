@@ -15,47 +15,61 @@
 	<body>
 		<div class="use_my_nav data_all">
 			<p class="overflow">
-				<a href="#"><label>上月预估收入(元)</label><span>23232元</span><strong class="blue">已结算</strong></a>
-				<a href="#" class='noborder'><label>本月预估收入(元)</label><span>7878元</span><strong class="red">待结算</strong></a>
+				<a href="/person"><label>上月预估收入(元)</label><span id="lastMoney">0元</span><strong class="blue" id="lastState"></strong></a>
+				<a href="/person" class='noborder'><label>本月预估收入(元)</label><span id="currentMoney">0元</span><strong class="red" id="currentState"></strong></a>
 			</p>
 		</div>
 		<div class="information">
 			<h2>
 				<img src="../images/icon_6.png">
-				<span >直接推荐用户<strong class="small">(共计121人)</strong></span>
+				<span >直接推荐用户<strong class="small" id="alluser">(共计121人)</strong></span>
 			</h2>
-			<table border="0" cellspacing="0" cellpadding="0" class="record_k">
-				<tr>
-					<th width="26%">一级直推</th>
-					<th width="38%">团队人数</th>
-					<th width="38%">团队订单</th>
-				</tr>
-				<tr>
-					<td>张东海</td>
-					<td>231人</td>
-					<td>2452单</td>
-				</tr>
-				<tr>
-					<td>李梦琪</td>
-					<td>1231人</td>
-					<td>24532单</td>
-				</tr>
-				<tr>
-					<td>王旭</td>
-					<td>2231人</td>
-					<td>22452单</td>
-				</tr>
-				<tr>
-					<td>王旭</td>
-					<td>41人</td>
-					<td>2452单</td>
-				</tr>
-				<tr>
-					<td>王旭</td>
-					<td>75人</td>
-					<td>24542单</td>
-				</tr>
+			<table border="0" cellspacing="0" cellpadding="0" class="record_k" id="allTable">
 			</table>
 		</div>
+
+		<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+		<script>
+            $.get("/api/get/last",function (r) {
+               if(r.data==""){
+                   $('#lastMoney').html("0元");
+                   $('#lastState').html("无");
+               }else{
+                   $('#lastMoney').html(r.data.RewardMoney.toFixed(2)+"元");
+                   $('#lastState').html(r.data.RewardState);
+               }
+            });
+            $.get("/api/get/current",function (r) {
+                if(r.data==""){
+                    $('#currentMoney').html("0元");
+                    $('#currentState').html("无");
+                }else{
+                    $('#currentMoney').html(r.data.RewardMoney.toFixed(2)+"元");
+                    $('#currentState').html(r.data.RewardState);
+                }
+            });
+            $.get("/api/get/recommend",function (r) {
+                var htmlStr = "<tr>\n" +
+                    "\t\t\t\t\t<th width=\"26%\">一级直推</th>\n" +
+                    "\t\t\t\t\t<th width=\"38%\">团队人数</th>\n" +
+                    "\t\t\t\t\t<th width=\"38%\">团队订单</th>\n" +
+                    "\t\t\t\t</tr>";
+                if(r.data==""){
+                    $('#recordTable').html(htmlStr);
+                }else{
+                    var totalNumber = 0;
+                    for(var index in r.data){
+                        htmlStr +="<tr>\n" +
+                            "\t\t\t\t\t<td>"+r.data[index].RecommendName+"</td>\n" +
+                            "\t\t\t\t\t<td>"+r.data[index].TeamPersonNumber+"</td>\n" +
+                            "\t\t\t\t\t<td>"+r.data[index].TeamOrderNumber+"</td>\n" +
+                            "\t\t\t\t</tr>";
+                        totalNumber += parseInt(r.data[index].TeamPersonNumber);
+                    }
+                    $('#alluser').html("(共计"+(parseInt(index)+1)+"人)");
+                    $('#allTable').html(htmlStr);
+                }
+            });
+        </script>
 	</body>
 </html>

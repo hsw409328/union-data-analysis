@@ -2,8 +2,8 @@ package controller
 
 import (
 	"errors"
+	"github.com/hsw409328/gofunc"
 	"github.com/hsw409328/gofunc/go_hlog"
-	"gofunc"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
