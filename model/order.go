@@ -1,6 +1,8 @@
 package model
 
-import "union-data-analysis/lib/driver"
+import (
+	"union-data-analysis/lib/driver"
+)
 
 type OrderData struct {
 	Id         string
@@ -34,6 +36,25 @@ func (ctx *Order) Group(group string) *Order {
 
 func (ctx *Order) GetAll() []OrderData {
 	r, err := driver.SQLiteDriverAnalysis.GetAll("select ID,sum(联盟佣金),sum(自己佣金) from " + OrderTableName +
+		ctx.where + ctx.group)
+	if err != nil {
+		lg.Error(err.Error())
+	}
+	defer r.Close()
+	var orderData = new(OrderData)
+	var orderDataSlice = make([]OrderData, 0)
+	for r.Next() {
+		err := r.Scan(&orderData.Id, &orderData.UnionMoney, &orderData.SelfMoney)
+		if err != nil {
+			lg.Error(err.Error())
+		}
+		orderDataSlice = append(orderDataSlice, *orderData)
+	}
+	return orderDataSlice
+}
+
+func (ctx *Order) GetAllNoSum() []OrderData {
+	r, err := driver.SQLiteDriverAnalysis.GetAll("select ID,联盟佣金,自己佣金 from " + OrderTableName +
 		ctx.where + ctx.group)
 	if err != nil {
 		lg.Error(err.Error())
