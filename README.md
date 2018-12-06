@@ -3,7 +3,9 @@ union-data-analysis
 
 #run
 
-打开cmd
+1、需要提前将要执行的db复制到【桌面】【union-data-analysis/db】目录
+
+2、打开cmd
 
 C:\Users\Administrator>```cd Desktop```
 
