@@ -15,6 +15,11 @@ var (
 	proxyModel             = new(model.Relation)
 	webFirstRecommendModel = new(model.WebFirstRecommend)
 	oModel                 = new(model.Order)
+	relationMapAll         = make(map[string][]model.RelationData)
+	userNumber,
+	orderNumber,
+	tmpOnceUserNumber,
+	tmpOnceOrderNumber int
 )
 
 func init() {
@@ -235,37 +240,46 @@ func updateSendRecord(lastDate string) {
 func webUserFirstRecommend() {
 	//读取web用户表，取出绑定的ID
 	r := webUserModel.GetAll()
-	//去代理表，通过上级ID，查出自己的下级
+	//取出所有代理关系表数据
+	relationAll := proxyModel.GetAll()
+	for _, tmp := range relationAll {
+		relationMapAll[tmp.ParentId] = append(relationMapAll[tmp.ParentId], tmp)
+	}
+	//绑定的ID匹配代理关系表的上级ID
 	for _, v := range r {
-		//用户量和订单量
-		var userNumber, orderNumber int
-		tmp := proxyModel.Where(map[string]string{
-			"上级ID": " = '" + v.UnionId + "'",
-		}).GetAll()
-		userNumber += len(tmp)
+		orderNumber, userNumber = 0, 0
 		//删旧的一级推荐
 		webFirstRecommendModel.Delete(v.Mobile)
-		//将新数据放入一级推荐表
-		for _, vv := range tmp {
-			//统计该人的订单
-			o := oModel.Where(map[string]string{
-				"ID": " ='" + vv.NextId + "' ",
-			}).GetAll()
-			orderNumber += len(o)
-			//统计该人的一级推荐
-			child := proxyModel.Where(map[string]string{
-				"上级ID": " = '" + vv.NextId + "'",
-			}).GetAll()
-			webFirstRecommendModel.Insert(model.WebFirstRecommendData{
-				Mobile:           v.Mobile,
-				RecommendName:    vv.NextName,
-				RecommendId:      vv.NextId,
-				TeamOrderNumber:  gofunc.InterfaceToString(len(o)),
-				TeamPersonNumber: gofunc.InterfaceToString(len(child)),
-				CreateTime:       gofunc.CurrentTime(),
-				UpdateTime:       gofunc.CurrentTime(),
-			})
+
+		//再用匹配到的子级ID接着匹配父级ID
+		if tmpSlice, ok := relationMapAll[v.UnionId]; ok {
+			for _, tmp := range tmpSlice {
+				tmpOnceUserNumber, tmpOnceOrderNumber = 0, 0
+				//统计当前人的订单 如果不为空，则算有效用户
+				//统计该人的订单
+				tmpOrderNumber := oModel.Where(map[string]string{
+					"ID": " ='" + tmp.NextId + "' ",
+				}).GetAllNoSum()
+				if len(tmpOrderNumber) > 0 {
+					userNumber += 1
+					orderNumber += len(tmpOrderNumber)
+					tmpOnceUserNumber += 1
+					tmpOnceOrderNumber += len(tmpOrderNumber)
+				}
+				//重复 再用匹配到的子级ID接着匹配父级ID
+				recursionChild(tmp.NextId)
+				webFirstRecommendModel.Insert(model.WebFirstRecommendData{
+					Mobile:           v.Mobile,
+					RecommendName:    tmp.NextName,
+					RecommendId:      tmp.NextId,
+					TeamOrderNumber:  gofunc.InterfaceToString(tmpOnceOrderNumber),
+					TeamPersonNumber: gofunc.InterfaceToString(tmpOnceUserNumber),
+					CreateTime:       gofunc.CurrentTime(),
+					UpdateTime:       gofunc.CurrentTime(),
+				})
+			}
 		}
+
 		//更新用户表的 用户量和订单量
 		webUserModel.UpdateUserNumberAndOrderNumber(model.WebUserData{
 			Mobile:           v.Mobile,
@@ -273,4 +287,26 @@ func webUserFirstRecommend() {
 			ChildUserNumber:  gofunc.InterfaceToString(userNumber),
 		})
 	}
+}
+
+func recursionChild(pid string) {
+	if tmpSlice, ok := relationMapAll[pid]; ok {
+		for _, tmp := range tmpSlice {
+			//统计当前人的订单 如果不为空，则算有效用户
+			//统计该人的订单
+			tmpOrderNumber := oModel.Where(map[string]string{
+				"ID": " ='" + tmp.NextId + "' ",
+			}).GetAllNoSum()
+			if len(tmpOrderNumber) > 0 {
+				userNumber += 1
+				orderNumber += len(tmpOrderNumber)
+				tmpOnceUserNumber += 1
+				tmpOnceOrderNumber += len(tmpOrderNumber)
+			}
+			//重复 再用匹配到的子级ID接着匹配父级ID
+			recursionChild(tmp.NextId)
+		}
+	}
+
+	return
 }
