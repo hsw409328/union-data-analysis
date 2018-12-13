@@ -148,6 +148,7 @@ func reduce(lastDate string, lastStartTime string, lastEndTime string) {
 	orderDataSlice := model.NewOrder().Where(map[string]string{
 		"cgtime": " between '" + lastStartTime + "' and '" + lastEndTime + "' ",
 		//"cgtime": " between '2018-11-01 00:00:00' and '2018-12-01 23:59:59' ",
+		//"cgtime": " between '2018-01-01 00:00:00' and '" + lastEndTime + "' ",
 		"订单状态": " = '失效订单'",
 	}).Group("ID").GetAll()
 	//每笔订单的业绩计算方法：
