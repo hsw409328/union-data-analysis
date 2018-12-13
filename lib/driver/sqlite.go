@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	SQLiteDriverAnalysis = NewSQLite("./db/2018-12-02-003925.db")
+	SQLiteDriverAnalysis = NewSQLite("./db/2018-12-13-112956.db")
 	SQLiteDriverWeb      = NewSQLite("./db/ad-data-analysis.db")
 	lg                   *go_hlog.Logger
 	sqlLog               bool
@@ -64,6 +64,7 @@ func (ctx *SQLite) Insert(sqlStmt string, v ...interface{}) (int64, error) {
 	ctx.Init()
 	if sqlLog {
 		lg.Debug(sqlStmt)
+		lg.Debug(v)
 	}
 	stmt, err := ctx.DB.Prepare(sqlStmt)
 	if err != nil {

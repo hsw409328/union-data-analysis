@@ -33,6 +33,19 @@ type Achievement struct {
 	DataTree []model.RelationUser `层级流`
 }
 
+type WebUserDataSlice []model.WebUserData
+
+// 获取此 slice 的长度
+func (w WebUserDataSlice) Len() int { return len(w) }
+
+// 根据元素的年龄降序排序 （此处按照自己的业务逻辑写）
+func (w WebUserDataSlice) Less(i, j int) bool {
+	return w[i].Level > w[j].Level
+}
+
+// 交换数据
+func (w WebUserDataSlice) Swap(i, j int) { w[i], w[j] = w[j], w[i] }
+
 func main() {
 	lg.Info(" system start ")
 	lastDate := gofunc.TimeUnixIntToStringCustom(gofunc.LastTime("d", -1), "2006-01-02")
@@ -62,9 +75,10 @@ func add(lastDate string, lastStartTime string, lastEndTime string) {
 
 	// 计算每天的所有订单业绩
 	orderDataSlice := model.NewOrder().Where(map[string]string{
-		//"cgtime": " between '" + lastStartTime + "' and '" + lastEndTime + "' ",
-		"cgtime": " between '2018-11-01 00:00:00' and '2018-12-01 23:59:59' ",
-		"订单状态":   " = '订单结算'",
+		"cgtime": " between '" + lastStartTime + "' and '" + lastEndTime + "' ",
+		//"cgtime": " between '2018-11-01 00:00:00' and '2018-12-01 23:59:59' ",
+		//"cgtime": " between '2018-01-01 00:00:00' and '" + lastEndTime + "'  ",
+		"订单状态": " = '订单结算'",
 	}).Group("ID").GetAll()
 	//每笔订单的业绩计算方法：
 	//业绩=自己的佣金 -（联盟佣金*12%）
@@ -98,12 +112,16 @@ func add(lastDate string, lastStartTime string, lastEndTime string) {
 				}
 				tmp = append(tmp, w)
 			}
+
 			//按照比例等级进行折算
 			if tmp != nil {
 				var ratio float32 = 0
 				var useRatio float32 = 0
 				for _, webUserVal := range tmp {
 					useRatio = webUserVal.Ratio - ratio
+					if useRatio < 0 {
+						useRatio = 0
+					}
 					ratio = webUserVal.Ratio
 					//获取的奖励
 					result := v.Money * useRatio
@@ -128,9 +146,9 @@ func reduce(lastDate string, lastStartTime string, lastEndTime string) {
 
 	// 计算每天的所有订单业绩
 	orderDataSlice := model.NewOrder().Where(map[string]string{
-		//"cgtime": " between '" + lastStartTime + "' and '" + lastEndTime + "' ",
-		"cgtime": " between '2018-11-01 00:00:00' and '2018-12-01 23:59:59' ",
-		"订单状态":   " = '失效订单'",
+		"cgtime": " between '" + lastStartTime + "' and '" + lastEndTime + "' ",
+		//"cgtime": " between '2018-11-01 00:00:00' and '2018-12-01 23:59:59' ",
+		"订单状态": " = '失效订单'",
 	}).Group("ID").GetAll()
 	//每笔订单的业绩计算方法：
 	//业绩=自己的佣金 -（联盟佣金*12%）
@@ -191,7 +209,7 @@ func updateSendRecord(lastDate string) {
 	webDayRecordModel := new(model.WebDayRecord)
 	r := webDayRecordModel.Where(map[string]string{
 		"奖励日期": " = '" + lastDate + "'",
-	}).GetAllSum()
+	}).Group("手机号").GetAllSum()
 	for _, v := range r {
 		//获取未结算的单子
 		webSendRecordModel := new(model.WebSendRecord)
