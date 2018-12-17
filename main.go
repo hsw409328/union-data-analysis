@@ -131,6 +131,7 @@ func add(lastDate string, lastStartTime string, lastEndTime string) {
 						gofunc.CurrentTime(),
 						lastDate,
 						result,
+						gofunc.InterfaceToString(useRatio),
 					})
 				}
 			}
@@ -198,6 +199,7 @@ func reduce(lastDate string, lastStartTime string, lastEndTime string) {
 						gofunc.CurrentTime(),
 						lastDate,
 						-result,
+						gofunc.InterfaceToString(useRatio),
 					})
 				}
 			}

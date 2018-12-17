@@ -8,6 +8,7 @@ type WebDayRecordData struct {
 	UpdateTime  string
 	RewardDate  string
 	RewardMoney float32
+	Ratio       string
 }
 
 type WebDayRecord struct {
@@ -74,10 +75,10 @@ func (ctx *WebDayRecord) GetAllSum() []WebDayRecordData {
 
 func (ctx *WebDayRecord) Insert(webDayRecordData WebDayRecordData) (int64, error) {
 	n, err := driver.SQLiteDriverWeb.Insert(
-		"insert into ["+WebDayRecordTableName+"]([创建时间], [更新时间], [奖励金额], [手机号], [奖励日期])"+
-			" values(?, ?, ?, ?, ?)",
+		"insert into ["+WebDayRecordTableName+"]([创建时间], [更新时间], [奖励金额], [手机号], [奖励日期], [合伙人比例])"+
+			" values(?, ?, ?, ?, ?, ?)",
 		webDayRecordData.CreateTime, webDayRecordData.UpdateTime, webDayRecordData.RewardMoney,
-		webDayRecordData.Mobile, webDayRecordData.RewardDate,
+		webDayRecordData.Mobile, webDayRecordData.RewardDate, webDayRecordData.Ratio,
 	)
 	return n, err
 }
