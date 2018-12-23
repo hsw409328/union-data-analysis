@@ -81,11 +81,11 @@ func add(lastDate string, lastStartTime string, lastEndTime string) {
 		"订单状态": " = '订单结算'",
 	}).Group("ID").GetAll()
 	//每笔订单的业绩计算方法：
-	//业绩=自己的佣金 -（联盟佣金*12%）
+	//业绩=自己的佣金 - 上级佣金 - 一级佣金 -（联盟佣金*12%）
 	var achievementList = make([]Achievement, 0)
 	for _, v := range orderDataSlice {
 		//自己的业绩
-		achievementMoney := v.SelfMoney - (v.UnionMoney * 0.12)
+		achievementMoney := v.SelfMoney - v.ParentMoney - v.FirstMoney - (v.UnionMoney * 0.12)
 		//找出自己的层级关系
 		relationModel.ResultTreeSlice = []model.RelationUser{}
 		relationModel.Tree(v.Id, relationDataMap)
@@ -157,7 +157,7 @@ func reduce(lastDate string, lastStartTime string, lastEndTime string) {
 	var achievementList = make([]Achievement, 0)
 	for _, v := range orderDataSlice {
 		//自己的业绩
-		achievementMoney := v.SelfMoney - (v.UnionMoney * 0.12)
+		achievementMoney := v.SelfMoney - v.ParentMoney - v.FirstMoney - (v.UnionMoney * 0.12)
 		//找出自己的层级关系
 		relationModel.ResultTreeSlice = []model.RelationUser{}
 		relationModel.Tree(v.Id, relationDataMap)
