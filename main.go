@@ -29,6 +29,7 @@ func init() {
 
 type Achievement struct {
 	Id       string               `用户ID`
+	Name     string               `用户昵称`
 	Money    float32              `业绩`
 	DataTree []model.RelationUser `层级流`
 }
@@ -75,10 +76,10 @@ func add(lastDate string, lastStartTime string, lastEndTime string) {
 
 	// 计算每天的所有订单业绩
 	orderDataSlice := model.NewOrder().Where(map[string]string{
-		"cgtime": " between '" + lastStartTime + "' and '" + lastEndTime + "' ",
+		//"cgtime": " between '" + lastStartTime + "' and '" + lastEndTime + "' ",
 		//"cgtime": " between '2018-11-01 00:00:00' and '2018-12-01 23:59:59' ",
-		//"cgtime": " between '2018-01-01 00:00:00' and '" + lastEndTime + "'  ",
-		"订单状态": " = '订单结算'",
+		"cgtime": " between '2018-01-01 00:00:00' and '" + lastEndTime + "'  ",
+		"订单状态":   " = '订单结算'",
 	}).Group("ID").GetAll()
 	//每笔订单的业绩计算方法：
 	//业绩=自己的佣金 - 上级佣金 - 一级佣金 -（联盟佣金*12%）
@@ -90,7 +91,7 @@ func add(lastDate string, lastStartTime string, lastEndTime string) {
 		relationModel.ResultTreeSlice = []model.RelationUser{}
 		relationModel.Tree(v.Id, relationDataMap)
 		if len(relationModel.ResultTreeSlice) > 0 {
-			achievementList = append(achievementList, Achievement{v.Id, achievementMoney, relationModel.ResultTreeSlice})
+			achievementList = append(achievementList, Achievement{v.Id, v.Name, achievementMoney, relationModel.ResultTreeSlice})
 			continue
 		}
 		achievementList = append(achievementList, Achievement{Id: v.Id, Money: achievementMoney})
@@ -132,6 +133,8 @@ func add(lastDate string, lastStartTime string, lastEndTime string) {
 						lastDate,
 						result,
 						gofunc.InterfaceToString(useRatio),
+						v.Id,
+						v.Name,
 					})
 				}
 			}
@@ -147,10 +150,10 @@ func reduce(lastDate string, lastStartTime string, lastEndTime string) {
 
 	// 计算每天的所有订单业绩
 	orderDataSlice := model.NewOrder().Where(map[string]string{
-		"cgtime": " between '" + lastStartTime + "' and '" + lastEndTime + "' ",
+		//"cgtime": " between '" + lastStartTime + "' and '" + lastEndTime + "' ",
 		//"cgtime": " between '2018-11-01 00:00:00' and '2018-12-01 23:59:59' ",
-		//"cgtime": " between '2018-01-01 00:00:00' and '" + lastEndTime + "' ",
-		"订单状态": " = '失效订单'",
+		"cgtime": " between '2018-01-01 00:00:00' and '" + lastEndTime + "' ",
+		"订单状态":   " = '失效订单'",
 	}).Group("ID").GetAll()
 	//每笔订单的业绩计算方法：
 	//业绩=自己的佣金 -（联盟佣金*12%）
@@ -162,7 +165,7 @@ func reduce(lastDate string, lastStartTime string, lastEndTime string) {
 		relationModel.ResultTreeSlice = []model.RelationUser{}
 		relationModel.Tree(v.Id, relationDataMap)
 		if len(relationModel.ResultTreeSlice) > 0 {
-			achievementList = append(achievementList, Achievement{v.Id, achievementMoney, relationModel.ResultTreeSlice})
+			achievementList = append(achievementList, Achievement{v.Id, v.Name, achievementMoney, relationModel.ResultTreeSlice})
 			continue
 		}
 		achievementList = append(achievementList, Achievement{Id: v.Id, Money: achievementMoney})
@@ -200,6 +203,8 @@ func reduce(lastDate string, lastStartTime string, lastEndTime string) {
 						lastDate,
 						-result,
 						gofunc.InterfaceToString(useRatio),
+						v.Id,
+						v.Name,
 					})
 				}
 			}

@@ -3,12 +3,14 @@ package model
 import "union-data-analysis/lib/driver"
 
 type WebDayRecordData struct {
-	Mobile      string
-	CreateTime  string
-	UpdateTime  string
-	RewardDate  string
-	RewardMoney float32
-	Ratio       string
+	Mobile        string
+	CreateTime    string
+	UpdateTime    string
+	RewardDate    string
+	RewardMoney   float32
+	Ratio         string
+	OrderUserId   string `订单用户ID`
+	OrderUserName string `订单用户昵称`
 }
 
 type WebDayRecord struct {
@@ -75,10 +77,12 @@ func (ctx *WebDayRecord) GetAllSum() []WebDayRecordData {
 
 func (ctx *WebDayRecord) Insert(webDayRecordData WebDayRecordData) (int64, error) {
 	n, err := driver.SQLiteDriverWeb.Insert(
-		"insert into ["+WebDayRecordTableName+"]([创建时间], [更新时间], [奖励金额], [手机号], [奖励日期], [合伙人比例])"+
-			" values(?, ?, ?, ?, ?, ?)",
+		"insert into ["+WebDayRecordTableName+"]([创建时间], [更新时间], [奖励金额], [手机号], [奖励日期],"+
+			" [合伙人比例],[用户ID],[用户昵称])"+
+			" values(?, ?, ?, ?, ?, ?,?,?)",
 		webDayRecordData.CreateTime, webDayRecordData.UpdateTime, webDayRecordData.RewardMoney,
-		webDayRecordData.Mobile, webDayRecordData.RewardDate, webDayRecordData.Ratio,
+		webDayRecordData.Mobile, webDayRecordData.RewardDate, webDayRecordData.Ratio, webDayRecordData.OrderUserId,
+		webDayRecordData.OrderUserName,
 	)
 	return n, err
 }
