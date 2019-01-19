@@ -225,7 +225,7 @@ func (ctx *MainController) GetPayCode(c *gin.Context) string {
 	params.SetString("mch_id", wx.MchId)
 	params.SetString("body", "支付")
 	params.SetString("out_trade_no", orderId)
-	params.SetString("total_fee", "9000")
+	params.SetString("total_fee", "1")
 	params.SetString("spbill_create_ip", gofunc.GetLocalIp())
 	params.SetString("notify_url", "http://partner.51xiaoq.com/pay_callback")
 	params.SetString("nonce_str", gofunc.GetGuuid())

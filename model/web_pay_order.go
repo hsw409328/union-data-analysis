@@ -75,7 +75,7 @@ func (ctx *WebPayOrder) GetOne() (WebPayOrderData, error) {
 	r := driver.SQLiteDriverWeb.GetOne("select 订单ID, 手机号, 支付金额,OPENID,创建时间,更新时间,状态 from " + WebPayOrderTableName +
 		ctx.where + ctx.group)
 	var WebPayOrderData = new(WebPayOrderData)
-	err := r.Scan(&WebPayOrderData.OpenId, &WebPayOrderData.Mobile, &WebPayOrderData.PayFee, &WebPayOrderData.OpenId,
+	err := r.Scan(&WebPayOrderData.OrderId, &WebPayOrderData.Mobile, &WebPayOrderData.PayFee, &WebPayOrderData.OpenId,
 		&WebPayOrderData.CreateTime, &WebPayOrderData.UpdateTime, &WebPayOrderData.State)
 	if err != nil {
 		lg.Error(err.Error())
@@ -94,7 +94,7 @@ func (ctx *WebPayOrder) Insert(w WebPayOrderData) (int64, error) {
 }
 
 func (ctx *WebPayOrder) Update(w WebPayOrderData) (int64, error) {
-	n, err := driver.SQLiteDriverWeb.Update("UPDATE "+WebUserTableName+" SET OPENID = ?,"+
+	n, err := driver.SQLiteDriverWeb.Update("UPDATE "+WebPayOrderTableName+" SET OPENID = ?,"+
 		"更新时间 = ?,状态 = ? WHERE 订单ID = ?",
 		w.OpenId, w.UpdateTime, w.State,
 		w.OrderId)

@@ -21,7 +21,7 @@ func main() {
 	routers.LoadHTMLGlob("./web/views/*")
 	routers.GET("/", controller.CheckLogin(), index)
 	routers.GET("/login", controller.CheckHaveLogin(), login)
-	routers.GET("/pay", controller.CheckLogin(), pay)
+	routers.GET("/pay", controller.CheckLoginPay(), pay)
 	routers.GET("/person", controller.CheckPay(), person)
 	routers.GET("/apply", controller.CheckPay(), apply)
 	routers.GET("/no/apply", controller.CheckPay(), noApply)
@@ -37,7 +37,7 @@ func main() {
 	routers.GET("/api/get/current", controller.CheckLoginJson(), (&controller.MainController{}).GetCurrentMoney)
 	routers.GET("/api/get/recommend", controller.CheckLoginJson(), (&controller.MainController{}).GetRecommend)
 
-	routers.GET("/pay_callback", (&controller.MainController{}).PayCallBack)
+	routers.POST("/pay_callback", (&controller.MainController{}).PayCallBack)
 
 	routers.Run()
 }

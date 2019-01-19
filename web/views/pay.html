@@ -17,12 +17,22 @@
 <div class="pay">
     <h2>成为合伙人 享多重特权</h2>
     <div class="ewm">
-        <img src="{{ .img_src }}">
+        <div id="qrcode"></div>
         <div class="pay_1">
             <img src="images/pay.jpg">
             <p>长按识别二维码<br />完成支付</p>
         </div>
     </div>
 </div>
+<script src="../js/qrcode.min.js"></script>
+
+<script type="text/javascript">
+    var qrcode = new QRCode(document.getElementById("qrcode"), {
+    });
+    function makeCode () {
+        qrcode.makeCode({{ .img_src }});
+    }
+    makeCode();
+</script>
 </body>
 </html>
