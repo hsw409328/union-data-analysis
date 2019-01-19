@@ -240,7 +240,7 @@ func (ctx *MainController) GetPayCode(c *gin.Context) string {
 		log.Println(err)
 		return ""
 	}
-	//map[appid:wx7b6a4b52b3472bc0 sign:76647F5354801D41D31A0B7DE6D4D1AA prepay_id:wx19112946883652944d18326a2956806708 code_url:weixin://wxpay/bizpayurl?pr=sHjpmfL return_code:SUCCESS return_msg:OK mch_id:1339710501 nonce_str:DMUh1puEw5g4G5po result_code:SUCCESS trade_type:NATIVE]
+
 	if ret.GetString("return_code") == "SUCCESS" {
 		return ret.GetString("code_url")
 	}
