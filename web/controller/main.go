@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/go-with/wxpay"
 	"github.com/hsw409328/gofunc"
 	"html/template"
 	"log"
@@ -18,6 +19,7 @@ var (
 	webUserModel      = new(model.WebUsers)
 	webSendRecord     = new(model.WebSendRecord)
 	webRecommendModel = new(model.WebFirstRecommend)
+	webPayOrderModel  = new(model.WebPayOrder)
 )
 
 type MainController struct {
@@ -203,4 +205,49 @@ func (ctx *MainController) GetRecommend(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": r})
+}
+
+func (ctx *MainController) GetPayCode(c *gin.Context) string {
+	u := ctx.GetLoginUserInfo(c)
+	orderId := gofunc.GetGuuid()
+	webPayOrderModel.Insert(model.WebPayOrderData{
+		OrderId:    orderId,
+		Mobile:     u.Mobile,
+		PayFee:     99,
+		OpenId:     "",
+		CreateTime: gofunc.CurrentTime(),
+		UpdateTime: "",
+		State:      `未支付`,
+	})
+	wx := wxpay.NewClient("wx7b6a4b52b3472bc0", "1339710501", "1kue34jiueiuieuqeoiquweoqiuweoiq")
+	params := make(wxpay.Params)
+	params.SetString("appid", wx.AppId)
+	params.SetString("mch_id", wx.MchId)
+	params.SetString("body", "支付")
+	params.SetString("out_trade_no", orderId)
+	params.SetString("total_fee", "990")
+	params.SetString("spbill_create_ip", gofunc.GetLocalIp())
+	params.SetString("notify_url", "http://partner.51xiaoq.com/pay_callback")
+	params.SetString("nonce_str", gofunc.GetGuuid())
+	params.SetString("trade_type", "NATIVE")
+	params.SetString("sign", wx.Sign(params))
+
+	url := "https://api.mch.weixin.qq.com/pay/unifiedorder"
+
+	// 发送查询企业付款请求
+	ret, err := wx.Post(url, params, false)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	//map[appid:wx7b6a4b52b3472bc0 sign:76647F5354801D41D31A0B7DE6D4D1AA prepay_id:wx19112946883652944d18326a2956806708 code_url:weixin://wxpay/bizpayurl?pr=sHjpmfL return_code:SUCCESS return_msg:OK mch_id:1339710501 nonce_str:DMUh1puEw5g4G5po result_code:SUCCESS trade_type:NATIVE]
+	if ret.GetString("return_code") == "SUCCESS" {
+		return ret.GetString("code_url")
+	}
+	return ""
+}
+
+func (ctx *MainController) PayCallBack(c *gin.Context) {
+	a := webPayOrderModel.WxpayCallback(c.Request)
+	c.XML(http.StatusOK, a)
 }

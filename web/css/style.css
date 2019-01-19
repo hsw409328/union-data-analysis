@@ -44,24 +44,24 @@ img, img a {
 	clear:both;
 }
 input::-webkit-input-placeholder,textarea::-webkit-input-placeholder { /* WebKit browsers */
-    color:    #ccc;
-    font-family: "微软雅黑";
+	color:    #ccc;
+	font-family: "微软雅黑";
 }
 :-moz-placeholder { /* Mozilla Firefox 4 to 18 */
-   color:    #ccc;
-   opacity:  1;
+	color:    #ccc;
+	opacity:  1;
 }
 ::-moz-placeholder { /* Mozilla Firefox 19+ */
-   color:    #ccc;
-   opacity:  1;
+	color:    #ccc;
+	opacity:  1;
 }
 :-ms-input-placeholder { /* Internet Explorer 10+ */
-   color:    #ccc;
+	color:    #ccc;
 }
 .none{opacity: 0;}
 /*在移动端点击后 会出现"暗色"的背景，这时候我们需要在css加入如下代码即可：*/
 a,button,input,optgroup,select,textarea{
-    -webkit-tap-highlight-color: rgba(0,0,0,0);
+	-webkit-tap-highlight-color: rgba(0,0,0,0);
 }
 /*去掉input 聚焦边框*/
 input,button,select,textarea{outline:none}
@@ -159,3 +159,44 @@ textarea{resize:none}
 .blue{color:#73bbfd}
 .red{color:#fc644b}
 .small{font-size:12px;font-weight: normal;color:#999;margin-left:5px;}
+
+.information .right_j{border:none;float: right; line-height: 20px;margin-top:3px;}
+.information .right_j1{border:none;float: right; line-height: 20px;}
+.information .right_j img{width: 14px;}
+.information .right_j1 img{width: 18px;}
+
+/*合伙人*/
+.agreement {padding:5%;}
+.agreement h1{font-size:12px;color:#333;font-weight: normal;}
+.agreement p{margin:0 0 5px 0;color:#666;line-height: 20px;}
+.agreement h2{color:#666;line-height: 20px;font-size:12px;font-weight: normal;margin-top:10px;}
+
+.unav{position: relative;overflow:hidden;zoom:1;}
+.unav a{display: block; border:#ccc solid 1px;-webkit-border-radius: 25px;-moz-border-radius: 25px;border-radius: 25px; width: 70%; text-align: center;margin: 0 auto;height:50px;line-height:50px;margin-top:30px;font-size:14px;color:#333}
+.unav span{position: absolute;bottom:10px;left:0;display: block;width: 100%; text-align: center;}
+.mind{width:100%;position: absolute;top: 35%;left: 50%;transform: translate(-50%, -50%);}
+
+.data_all a img{ width: 14px;margin-left:5px;margin-top:-2px; }
+.noborder1{border-top:0;}
+.instructions{ width:60%; background: #fff;padding:25px;z-index: 1000; background: #fff;position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);-webkit-border-radius: 5px;-moz-border-radius: 5px;border-radius:5px;  display: none;}
+.instructions h2{font-size:14px;color:#333;margin-bottom:10px}
+.instructions p{line-height: 20px;color:#666}
+.close{position: absolute;right:10px;top:10px; width: 20px;}
+.home{position: fixed;bottom:15px;right:15px; background: #F46845; width: 40px;height:40px;-webkit-border-radius: 50%;-moz-border-radius: 50%;border-radius:50%; text-align: center;}
+.home img{ width: 26px;height:26px;margin-top:7px; }
+.recommended{padding:20px 10px;position: relative;}
+.recommended p{font-size:14px;color:#333;line-height: 24px;margin-left:5px;}
+.recommended a{ position: absolute;right:10px ;top:46px;}
+.recommended a img{width: 20px;}
+
+.pay h2{font-size:17px;color:#333; text-align: center; padding:30px 0;font-weight: normal;border-bottom:#f1f1f1 solid 5px;}
+.ewm{width: 220px; margin: 40px auto 10px;}
+.ewm img{ width: 100%;}
+.pay_1 {border:#ccc solid 2px;margin-top:40px;overflow: hidden;zoom: 1;padding:10px}
+.pay_1 img{ width: 60px;float: left;}
+.pay_1 p{font-size:16px;color:#333;float:left;margin-left:10%;margin-top:9px;}
+
+.bank {padding-top:5px;}
+.bank  h2{padding: 0 10px;}
+.upp{margin:20px 10px 0;}
+.upp .up {display:block;  width:100%; background: #FF6344; text-align: center;height:40px;line-height:40px;color:#fff;font-size:16px;}

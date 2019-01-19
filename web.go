@@ -21,6 +21,7 @@ func main() {
 	routers.LoadHTMLGlob("./web/views/*")
 	routers.GET("/", controller.CheckLogin(), index)
 	routers.GET("/login", controller.CheckHaveLogin(), login)
+	routers.GET("/pay", controller.CheckHaveLogin(), pay)
 	routers.GET("/person", controller.CheckLogin(), person)
 	routers.GET("/apply", controller.CheckLogin(), apply)
 	routers.GET("/no/apply", controller.CheckLogin(), noApply)
@@ -36,6 +37,8 @@ func main() {
 	routers.GET("/api/get/current", controller.CheckLoginJson(), (&controller.MainController{}).GetCurrentMoney)
 	routers.GET("/api/get/recommend", controller.CheckLoginJson(), (&controller.MainController{}).GetRecommend)
 
+	routers.GET("/pay_callback", (&controller.MainController{}).PayCallBack)
+
 	routers.Run()
 }
 
@@ -50,6 +53,12 @@ func index(ctx *gin.Context) {
 }
 func login(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "login.html", gin.H{})
+}
+func pay(ctx *gin.Context) {
+	a := (&controller.MainController{}).GetPayCode(ctx)
+	ctx.HTML(http.StatusOK, "pay.html", gin.H{
+		"img_src": a,
+	})
 }
 func person(ctx *gin.Context) {
 	tmpUser := (&controller.MainController{}).GetLoginUserInfo(ctx)
