@@ -88,7 +88,7 @@ func (ctx *WebPayOrder) Insert(w WebPayOrderData) (int64, error) {
 	n, err := driver.SQLiteDriverWeb.Insert(
 		"insert into ["+WebPayOrderTableName+"]([订单ID],[手机号],[支付金额],[OPENID],[创建时间],[更新时间],[状态])"+
 			" values(?, ?, ?, ?, ?, ?, ?)",
-		w.OrderId, w.Mobile, w.PayFee, w.OrderId, w.CreateTime, w.UpdateTime, w.State,
+		w.OrderId, w.Mobile, w.PayFee, "", w.CreateTime, w.UpdateTime, w.State,
 	)
 	return n, err
 }
