@@ -213,19 +213,19 @@ func (ctx *MainController) GetPayCode(c *gin.Context) string {
 	webPayOrderModel.Insert(model.WebPayOrderData{
 		OrderId:    orderId,
 		Mobile:     u.Mobile,
-		PayFee:     99,
+		PayFee:     90,
 		OpenId:     "",
 		CreateTime: gofunc.CurrentTime(),
 		UpdateTime: "",
 		State:      `未支付`,
 	})
-	wx := wxpay.NewClient("wx7b6a4b52b3472bc0", "1339710501", "1kue34jiueiuieuqeoiquweoqiuweoiq")
+	wx := wxpay.NewClient("", "", "")
 	params := make(wxpay.Params)
 	params.SetString("appid", wx.AppId)
 	params.SetString("mch_id", wx.MchId)
 	params.SetString("body", "支付")
 	params.SetString("out_trade_no", orderId)
-	params.SetString("total_fee", "1")
+	params.SetString("total_fee", "9000")
 	params.SetString("spbill_create_ip", gofunc.GetLocalIp())
 	params.SetString("notify_url", "http://partner.51xiaoq.com/pay_callback")
 	params.SetString("nonce_str", gofunc.GetGuuid())
